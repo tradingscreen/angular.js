@@ -137,8 +137,8 @@ function $SceDelegateProvider() {
             (documentProtocol === "http:" && resourceProtocol === "https:"));
   }
 
-  this.$get = ['$log', '$document', '$injector', '$$urlUtils', function(
-                $log,   $document,   $injector,   $$urlUtils) {
+  this.$get = ['$log', '$document', '$injector', '$urlUtils', function(
+                $log,   $document,   $injector,   $urlUtils) {
 
     var htmlSanitizer = function htmlSanitizer(html) {
       throw $sceMinErr('unsafe', 'Attempting to use an unsafe value in a safe context.');
@@ -151,14 +151,14 @@ function $SceDelegateProvider() {
 
     function matchUrl(matcher, parsedUrl) {
       if (matcher === 'self') {
-        return $$urlUtils.isSameOrigin(parsedUrl);
+        return $urlUtils.isSameOrigin(parsedUrl);
       } else {
         return !!parsedUrl.href.match(matcher);
       }
     }
 
     function isResourceUrlAllowedByPolicy(url) {
-      var parsedUrl = $$urlUtils.resolve(url.toString(), true);
+      var parsedUrl = $urlUtils.resolve(url.toString(), true);
       var i, n, allowed = false;
       // Ensure that at least one item from the whitelist allows this url.
       for (i = 0, n = resourceUrlWhitelist.length; i < n; i++) {

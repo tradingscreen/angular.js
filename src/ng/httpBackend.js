@@ -32,7 +32,7 @@ function $HttpBackendProvider() {
 
 function createHttpBackend($browser, XHR, $browserDefer, callbacks, rawDocument, locationProtocol) {
   // TODO(vojta): fix the signature
-  return function(method, url, post, callback, headers, timeout, withCredentials, responseType) {
+  return function(method, url, post, callback, headers, timeout, withCredentials, responseType, async) {
     var status;
     $browser.$$incOutstandingRequestCount();
     url = url || $browser.url();
@@ -54,7 +54,7 @@ function createHttpBackend($browser, XHR, $browserDefer, callbacks, rawDocument,
       });
     } else {
       var xhr = new XHR();
-      xhr.open(method, url, true);
+      xhr.open(method, url, async);
       forEach(headers, function(value, key) {
         if (value) xhr.setRequestHeader(key, value);
       });

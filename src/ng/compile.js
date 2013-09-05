@@ -274,7 +274,7 @@ function $CompileProvider($provide) {
 
   this.$get = [
             '$injector', '$interpolate', '$exceptionHandler', '$http', '$templateCache', '$parse',
-            '$controller', '$rootScope', '$document', '$sce', '$$urlUtils', '$animate',
+            '$controller', '$rootScope', '$document', '$sce', '$urlUtils', '$animate',
     function($injector,   $interpolate,   $exceptionHandler,   $http,   $templateCache,   $parse,
              $controller,   $rootScope,   $document,   $sce,   $urlUtils, $animate) {
 

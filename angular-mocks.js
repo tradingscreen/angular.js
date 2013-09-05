@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.1.6-4fc95b5
+ * @license AngularJS v1.2.0-280edf4
  * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  *
@@ -309,18 +309,32 @@ angular.mock.$ExceptionHandlerProvider = function() {
  *
  */
 angular.mock.$LogProvider = function() {
+  var debug = true;
 
   function concat(array1, array2, index) {
     return array1.concat(Array.prototype.slice.call(array2, index));
   }
 
+  this.debugEnabled = function(flag) {
+	  if (angular.isDefined(flag)) {
+		  debug = flag;
+		  return this;
+	  } else {
+		  return debug;
+	  }
+  };
 
   this.$get = function () {
     var $log = {
       log: function() { $log.log.logs.push(concat([], arguments, 0)); },
       warn: function() { $log.warn.logs.push(concat([], arguments, 0)); },
       info: function() { $log.info.logs.push(concat([], arguments, 0)); },
-      error: function() { $log.error.logs.push(concat([], arguments, 0)); }
+      error: function() { $log.error.logs.push(concat([], arguments, 0)); },
+      debug: function() {
+        if (debug) {
+          $log.debug.logs.push(concat([], arguments, 0));
+        }
+      }
     };
 
     /**
@@ -349,21 +363,6 @@ angular.mock.$LogProvider = function() {
       $log.log.logs = [];
       /**
        * @ngdoc property
-       * @name ngMock.$log#warn.logs
-       * @propertyOf ngMock.$log
-       *
-       * @description
-       * Array of messages logged using {@link ngMock.$log#warn}.
-       *
-       * @example
-       * <pre>
-       * $log.warn('Some Warning');
-       * var first = $log.warn.logs.unshift();
-       * </pre>
-       */
-      $log.warn.logs = [];
-      /**
-       * @ngdoc property
        * @name ngMock.$log#info.logs
        * @propertyOf ngMock.$log
        *
@@ -379,6 +378,21 @@ angular.mock.$LogProvider = function() {
       $log.info.logs = [];
       /**
        * @ngdoc property
+       * @name ngMock.$log#warn.logs
+       * @propertyOf ngMock.$log
+       *
+       * @description
+       * Array of messages logged using {@link ngMock.$log#warn}.
+       *
+       * @example
+       * <pre>
+       * $log.warn('Some Warning');
+       * var first = $log.warn.logs.unshift();
+       * </pre>
+       */
+      $log.warn.logs = [];
+      /**
+       * @ngdoc property
        * @name ngMock.$log#error.logs
        * @propertyOf ngMock.$log
        *
@@ -392,6 +406,21 @@ angular.mock.$LogProvider = function() {
        * </pre>
        */
       $log.error.logs = [];
+        /**
+       * @ngdoc property
+       * @name ngMock.$log#debug.logs
+       * @propertyOf ngMock.$log
+       *
+       * @description
+       * Array of messages logged using {@link ngMock.$log#debug}.
+       *
+       * @example
+       * <pre>
+       * $log.debug('Some Error');
+       * var first = $log.debug.logs.unshift();
+       * </pre>
+       */
+      $log.debug.logs = []
     };
 
     /**
@@ -404,7 +433,7 @@ angular.mock.$LogProvider = function() {
      */
     $log.assertEmpty = function() {
       var errors = [];
-      angular.forEach(['error', 'warn', 'info', 'log'], function(logLevel) {
+      angular.forEach(['error', 'warn', 'info', 'log', 'debug'], function(logLevel) {
         angular.forEach($log[logLevel].logs, function(log) {
           angular.forEach(log, function (logItem) {
             errors.push('MOCK $log (' + logLevel + '): ' + String(logItem) + '\n' + (logItem.stack || ''));
@@ -635,7 +664,7 @@ angular.mock.animate = angular.module('mock.animate', ['ng'])
       var animate = {
         queue : [],
         enabled : $delegate.enabled,
-        process : function(name) {
+        flushNext : function(name) {
           var tick = animate.queue.shift();
           expect(tick.method).toBe(name);
           tick.fn();
@@ -643,7 +672,7 @@ angular.mock.animate = angular.module('mock.animate', ['ng'])
         }
       };
 
-      forEach(['enter','leave','move','show','hide','addClass','removeClass'], function(method) {
+      forEach(['enter','leave','move','addClass','removeClass'], function(method) {
         animate[method] = function() {
           var params = arguments;
           animate.queue.push({
@@ -664,60 +693,6 @@ angular.mock.animate = angular.module('mock.animate', ['ng'])
 
   }]);
 
-/**
- * @ngdoc function
- * @name angular.mock.createMockWindow
- * @description
- *
- * This function creates a mock window object useful for controlling access ot setTimeout, but mocking out
- * sufficient window's properties to allow Angular to execute.
- *
- * @example
- *
- * <pre>
-    beforeEach(module(function($provide) {
-      $provide.value('$window', window = angular.mock.createMockWindow());
-    }));
-
-    it('should do something', inject(function($window) {
-      var val = null;
-      $window.setTimeout(function() { val = 123; }, 10);
-      expect(val).toEqual(null);
-      window.setTimeout.expect(10).process();
-      expect(val).toEqual(123);
-    });
- * </pre>
- *
- */
-angular.mock.createMockWindow = function() {
-  var mockWindow = {};
-  var setTimeoutQueue = [];
-
-  mockWindow.location = window.location;
-  mockWindow.document = window.document;
-  mockWindow.getComputedStyle = angular.bind(window, window.getComputedStyle);
-  mockWindow.scrollTo = angular.bind(window, window.scrollTo);
-  mockWindow.navigator = window.navigator;
-  mockWindow.setTimeout = function(fn, delay) {
-    setTimeoutQueue.push({fn: fn, delay: delay});
-  };
-  mockWindow.setTimeout.queue = setTimeoutQueue;
-  mockWindow.setTimeout.expect = function(delay) {
-    if (setTimeoutQueue.length > 0) {
-      return {
-        process: function() {
-          var tick = setTimeoutQueue.shift();
-          expect(tick.delay).toEqual(delay);
-          tick.fn();
-        }
-      };
-    } else {
-      expect('SetTimoutQueue empty. Expecting delay of ').toEqual(delay);
-    }
-  };
-
-  return mockWindow;
-};
 
 /**
  * @ngdoc function
@@ -758,6 +733,7 @@ angular.mock.dump = function(object) {
       } else if (object instanceof Error) {
         out = object.stack || ('' + object.name + ': ' + object.message);
       } else {
+        // TODO(i): this prevents methods to be logged, we should have a better way to serialize objects
         out = angular.toJson(object, true);
       }
     } else {
@@ -1016,7 +992,7 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
   }
 
   // TODO(vojta): change params to: method, url, data, headers, callback
-  function $httpBackend(method, url, data, callback, headers, timeout) {
+  function $httpBackend(method, url, data, callback, headers, timeout, withCredentials) {
     var xhr = new MockXhr(),
         expectation = expectations[0],
         wasExpected = false;
@@ -1074,7 +1050,7 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
           // if $browser specified, we do auto flush all requests
           ($browser ? $browser.defer : responsesPush)(wrapResponse(definition));
         } else if (definition.passThrough) {
-          $delegate(method, url, data, callback, headers, timeout);
+          $delegate(method, url, data, callback, headers, timeout, withCredentials);
         } else throw Error('No response defined !');
         return;
       }
@@ -1094,7 +1070,8 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    *
    * @param {string} method HTTP method.
    * @param {string|RegExp} url HTTP url.
-   * @param {(string|RegExp)=} data HTTP request body.
+   * @param {(string|RegExp|function(string))=} data HTTP request body or function that receives
+   *   data string and returns true if the data is as expected.
    * @param {(Object|function(Object))=} headers HTTP headers or function that receives http header
    *   object and returns true if the headers match the current definition.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
@@ -1170,7 +1147,8 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    * Creates a new backend definition for POST requests. For more info see `when()`.
    *
    * @param {string|RegExp} url HTTP url.
-   * @param {(string|RegExp)=} data HTTP request body.
+   * @param {(string|RegExp|function(string))=} data HTTP request body or function that receives
+   *   data string and returns true if the data is as expected.
    * @param {(Object|function(Object))=} headers HTTP headers.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
    * request is handled.
@@ -1184,7 +1162,8 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    * Creates a new backend definition for PUT requests.  For more info see `when()`.
    *
    * @param {string|RegExp} url HTTP url.
-   * @param {(string|RegExp)=} data HTTP request body.
+   * @param {(string|RegExp|function(string))=} data HTTP request body or function that receives
+   *   data string and returns true if the data is as expected.
    * @param {(Object|function(Object))=} headers HTTP headers.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
    * request is handled.
@@ -1213,7 +1192,9 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    *
    * @param {string} method HTTP method.
    * @param {string|RegExp} url HTTP url.
-   * @param {(string|RegExp)=} data HTTP request body.
+   * @param {(string|RegExp|function(string)|Object)=} data HTTP request body or function that
+   *  receives data string and returns true if the data is as expected, or Object if request body
+   *  is in JSON format.
    * @param {(Object|function(Object))=} headers HTTP headers or function that receives http header
    *   object and returns true if the headers match the current expectation.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
@@ -1282,7 +1263,9 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    * Creates a new request expectation for POST requests. For more info see `expect()`.
    *
    * @param {string|RegExp} url HTTP url.
-   * @param {(string|RegExp)=} data HTTP request body.
+   * @param {(string|RegExp|function(string)|Object)=} data HTTP request body or function that
+   *  receives data string and returns true if the data is as expected, or Object if request body
+   *  is in JSON format.
    * @param {Object=} headers HTTP headers.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
    *   request is handled.
@@ -1296,7 +1279,9 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    * Creates a new request expectation for PUT requests. For more info see `expect()`.
    *
    * @param {string|RegExp} url HTTP url.
-   * @param {(string|RegExp)=} data HTTP request body.
+   * @param {(string|RegExp|function(string)|Object)=} data HTTP request body or function that
+   *  receives data string and returns true if the data is as expected, or Object if request body
+   *  is in JSON format.
    * @param {Object=} headers HTTP headers.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
    *   request is handled.
@@ -1310,7 +1295,9 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    * Creates a new request expectation for PATCH requests. For more info see `expect()`.
    *
    * @param {string|RegExp} url HTTP url.
-   * @param {(string|RegExp)=} data HTTP request body.
+   * @param {(string|RegExp|function(string)|Object)=} data HTTP request body or function that
+   *  receives data string and returns true if the data is as expected, or Object if request body
+   *  is in JSON format.
    * @param {Object=} headers HTTP headers.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
    *   request is handled.
@@ -1463,6 +1450,7 @@ function MockHttpExpectation(method, url, data, headers) {
   this.matchData = function(d) {
     if (angular.isUndefined(data)) return true;
     if (data && angular.isFunction(data.test)) return data.test(d);
+    if (data && angular.isFunction(data)) return data(d);
     if (data && !angular.isString(data)) return angular.toJson(data) == d;
     return data == d;
   };
@@ -1863,9 +1851,11 @@ angular.mock.clearDataCache = function() {
    *
    * See {@link angular.mock.inject inject} for usage example
    *
-   * @param {...(string|Function)} fns any number of modules which are represented as string
+   * @param {...(string|Function|Object)} fns any number of modules which are represented as string
    *        aliases or as anonymous module initialization functions. The modules are used to
-   *        configure the injector. The 'ng' and 'ngMock' modules are automatically loaded.
+   *        configure the injector. The 'ng' and 'ngMock' modules are automatically loaded. If an 
+   *        object literal is passed they will be register as values in the module, the key being
+   *        the module name and the value being what is returned.
    */
   window.module = angular.mock.module = function() {
     var moduleFns = Array.prototype.slice.call(arguments, 0);
@@ -1877,7 +1867,15 @@ angular.mock.clearDataCache = function() {
       } else {
         var modules = currentSpec.$modules || (currentSpec.$modules = []);
         angular.forEach(moduleFns, function(module) {
-          modules.push(module);
+          if (angular.isObject(module) && !angular.isArray(module)) {
+            modules.push(function($provide) {
+              angular.forEach(module, function(value, key) {
+                $provide.value(key, value);
+              });
+            });
+          } else {
+            modules.push(module);
+          }
         });
       }
     }
@@ -1894,8 +1892,40 @@ angular.mock.clearDataCache = function() {
    * instance of {@link AUTO.$injector $injector} per test, which is then used for
    * resolving references.
    *
-   * See also {@link angular.mock.module module}
    *
+   * ## Resolving References (Underscore Wrapping)
+   * Often, we would like to inject a reference once, in a `beforeEach()` block and reuse this
+   * in multiple `it()` clauses. To be able to do this we must assign the reference to a variable
+   * that is declared in the scope of the `describe()` block. Since we would, most likely, want 
+   * the variable to have the same name of the reference we have a problem, since the parameter
+   * to the `inject()` function would hide the outer variable.
+   *
+   * To help with this, the injected parameters can, optionally, beenclosing with underscores.
+   * These are ignored by the injector when the reference name is resolved.
+   * 
+   * For example, the parameter `_myService_` would be resolved as the reference `myService`.
+   * Since it is available in the function body as _myService_, we can then assign it to a variable
+   * defined in an outer scope.
+   * 
+   * ```
+   * // Defined out reference variable outside
+   * var myService;
+   *
+   * // Wrap the parameter in underscores
+   * beforeEach( inject( function(_myService_){
+   *   myService = _myService_;
+   * })); 
+   *
+   * // Use myService in a series of tests.
+   * it('makes use of myService', function() {
+   *   myService.doStuff();
+   * });
+   * 
+   * ```
+   * 
+   * See also {@link angular.mock.module angular.mock.module}
+   *
+   * ## Example
    * Example of what a typical jasmine tests looks like with the inject method.
    * <pre>
    *
@@ -1932,7 +1962,7 @@ angular.mock.clearDataCache = function() {
    *   });
    *
    * </pre>
-   *
+   * 
    * @param {...Function} fns any number of functions which will be injected using the injector.
    */
   window.inject = angular.mock.inject = function() {

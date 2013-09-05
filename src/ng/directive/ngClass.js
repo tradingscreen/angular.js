@@ -2,7 +2,7 @@
 
 function classDirective(name, selector) {
   name = 'ngClass' + name;
-  return ['$animate', function($animate) {
+  return function() {
     return {
       restrict: 'AC',
       link: function(scope, element, attr) {
@@ -11,8 +11,7 @@ function classDirective(name, selector) {
         scope.$watch(attr[name], ngClassWatchAction, true);
 
         attr.$observe('class', function(value) {
-          var ngClass = scope.$eval(attr[name]);
-          ngClassWatchAction(ngClass, ngClass);
+          ngClassWatchAction(scope.$eval(attr[name]));
         });
 
 
@@ -42,18 +41,12 @@ function classDirective(name, selector) {
 
 
         function removeClass(classVal) {
-          classVal = flattenClasses(classVal);
-          if(classVal && classVal.length > 0) {
-            $animate.removeClass(element, classVal);
-          }
+          attr.$removeClass(flattenClasses(classVal));
         }
 
 
         function addClass(classVal) {
-          classVal = flattenClasses(classVal);
-          if(classVal && classVal.length > 0) {
-            $animate.addClass(element, classVal);
-          }
+          attr.$addClass(flattenClasses(classVal));
         }
 
         function flattenClasses(classVal) {
@@ -73,7 +66,7 @@ function classDirective(name, selector) {
         };
       }
     };
-  }];
+  };
 }
 
 /**
@@ -100,7 +93,66 @@ function classDirective(name, selector) {
  *   names of the properties whose values are truthy will be added as css classes to the
  *   element.
  *
- * @example
+ * @example Example that demostrates basic bindings via ngClass directive.
+   <example>
+     <file name="index.html">
+       <p ng-class="{strike: strike, bold: bold, red: red}">Map Syntax Example</p>
+       <input type="checkbox" ng-model="bold"> bold
+       <input type="checkbox" ng-model="strike"> strike
+       <input type="checkbox" ng-model="red"> red
+       <hr>
+       <p ng-class="style">Using String Syntax</p>
+       <input type="text" ng-model="style" placeholder="Type: bold strike red">
+       <hr>
+       <p ng-class="[style1, style2, style3]">Using Array Syntax</p>
+       <input ng-model="style1" placeholder="Type: bold"><br>
+       <input ng-model="style2" placeholder="Type: strike"><br>
+       <input ng-model="style3" placeholder="Type: red"><br>
+     </file>
+     <file name="style.css">
+       .strike {
+         text-decoration: line-through;
+       }
+       .bold {
+           font-weight: bold;
+       }
+       .red {
+           color: red;
+       }
+     </file>
+     <file name="scenario.js">
+       it('should let you toggle the class', function() {
+
+         expect(element('.doc-example-live p:first').prop('className')).not().toMatch(/bold/);
+         expect(element('.doc-example-live p:first').prop('className')).not().toMatch(/red/);
+
+         input('bold').check();
+         expect(element('.doc-example-live p:first').prop('className')).toMatch(/bold/);
+
+         input('red').check();
+         expect(element('.doc-example-live p:first').prop('className')).toMatch(/red/);
+       });
+
+       it('should let you toggle string example', function() {
+         expect(element('.doc-example-live p:nth-of-type(2)').prop('className')).toBe('');
+         input('style').enter('red');
+         expect(element('.doc-example-live p:nth-of-type(2)').prop('className')).toBe('red');
+       });
+
+       it('array example should have 3 classes', function() {
+         expect(element('.doc-example-live p:last').prop('className')).toBe('');
+         input('style1').enter('bold');
+         input('style2').enter('strike');
+         input('style3').enter('red');
+         expect(element('.doc-example-live p:last').prop('className')).toBe('bold strike red');
+       });
+     </file>
+   </example>
+
+   ## Animations
+
+   The example below demonstrates how to perform animations using ngClass.
+
    <example animations="true">
      <file name="index.html">
       <input type="button" value="set" ng-click="myVar='my-class'">
@@ -144,6 +196,14 @@ function classDirective(name, selector) {
        });
      </file>
    </example>
+
+
+   ## ngClass and pre-existing CSS3 Transitions/Animations
+   The ngClass directive still supports CSS3 Transitions/Animations even if they do not follow the ngAnimate CSS naming structure.
+   Therefore, if any CSS3 Transition/Animation styles (outside of ngAnimate) are set on the element, then, if a ngClass animation
+   is triggered, the ngClass animation will be skipped so that ngAnimate can allow for the pre-existing transition or animation to
+   take over. This restriction allows for ngClass to still work with standard CSS3 Transitions/Animations that are defined
+   outside of ngAnimate.
  */
 var ngClassDirective = classDirective('', true);
 

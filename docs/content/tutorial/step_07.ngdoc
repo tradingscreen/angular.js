@@ -36,8 +36,8 @@ our application. Other "partial templates" are then included into this layout te
 the current "route" — the view that is currently displayed to the user.
 
 Application routes in Angular are declared via the
-{@link api/ng.$routeProvider $routeProvider}, which is the provider of the
-{@link api/ng.$route $route service}. This service makes it easy to wire together
+{@link api/ngRoute.$routeProvider $routeProvider}, which is the provider of the
+{@link api/ngRoute.$route $route service}. This service makes it easy to wire together
 controllers, view templates, and the current
 URL location in the browser. Using this feature we can implement {@link
 http://en.wikipedia.org/wiki/Deep_linking deep linking}, which lets us utilize the browser's
@@ -62,7 +62,7 @@ service, the `$routeProvider` exposes APIs that allow you to define routes for y
 
 Angular modules solve the problem of removing global state from the application and provide a way
 of configuring the injector. As opposed to AMD or require.js modules, Angular modules don't try to
-solve the problem of script load ordering or lazy script fetching. These goals are orthogonal and
+solve the problem of script load ordering or lazy script fetching. These goals are totally independent and
 both module systems can live side by side and fulfil their goals.
 
 ## The App Module
@@ -104,7 +104,7 @@ the browser address doesn't match either of our routes.
 Note the use of the `:phoneId` parameter in the second route declaration. The `$route` service uses
 the route declaration — `'/phones/:phoneId'` — as a template that is matched against the current
 URL. All variables defined with the `:` notation are extracted into the
-{@link api/ng.$routeParams $routeParams} object.
+{@link api/ngRoute.$routeParams $routeParams} object.
 
 
 In order for our application to bootstrap with our newly created module we'll also need to specify
@@ -134,7 +134,7 @@ function PhoneDetailCtrl($scope, $routeParams) {
 
 ## Template
 
-The `$route` service is usually used in conjunction with the {@link api/ng.directive:ngView
+The `$route` service is usually used in conjunction with the {@link api/ngRoute.directive:ngView
 ngView} directive. The role of the `ngView` directive is to include the view template for the current
 route into the layout template, which makes it a perfect fit for our `index.html` template.
 

@@ -5,7 +5,12 @@
  * @name ngRoute
  * @description
  *
- * Module that provides routing and deeplinking services and directives for angular apps.
+ * # ngRoute
+ *
+ * The `ngRoute` module provides routing and deeplinking services and directives for angular apps.
+ *
+ * {@installModule route}
+ *
  */
 
 var ngRouteModule = angular.module('ngRoute', ['ng']).
@@ -19,6 +24,8 @@ var ngRouteModule = angular.module('ngRoute', ['ng']).
  * @description
  *
  * Used for configuring routes. See {@link ngRoute.$route $route} for an example.
+ *
+ * Requires the {@link ngRoute `ngRoute`} module to be installed.
  */
 function $RouteProvider(){
   var routes = {};
@@ -35,11 +42,13 @@ function $RouteProvider(){
    *
    *      * `path` can contain named groups starting with a colon (`:name`). All characters up
    *        to the next slash are matched and stored in `$routeParams` under the given `name`
-   *        after the route is resolved.
-   *      * `path` can contain named groups starting with a star (`*name`). All characters are
-   *        eagerly stored in `$routeParams` under the given `name` after the route is resolved.
+   *        when the route matches.
+   *      * `path` can contain named groups starting with a colon and ending with a star (`:name*`).
+   *        All characters are eagerly stored in `$routeParams` under the given `name`
+   *        when the route matches.
+   *      * `path` can contain optional named groups with a question mark (`:name?`).
    *
-   *    For example, routes like `/color/:color/largecode/*largecode/edit` will match
+   *    For example, routes like `/color/:color/largecode/:largecode*\/edit` will match
    *    `/color/brown/largecode/code/with/slashs/edit` and extract:
    *
    *      * `color: brown`
@@ -117,19 +126,65 @@ function $RouteProvider(){
    * Adds a new route definition to the `$route` service.
    */
   this.when = function(path, route) {
-    routes[path] = extend({reloadOnSearch: true, caseInsensitiveMatch: false}, route);
+    routes[path] = extend(
+      {reloadOnSearch: true},
+      route,
+      path && pathRegExp(path, route)
+    );
 
     // create redirection for trailing slashes
     if (path) {
       var redirectPath = (path[path.length-1] == '/')
-          ? path.substr(0, path.length-1)
-          : path +'/';
+            ? path.substr(0, path.length-1)
+            : path +'/';
 
-      routes[redirectPath] = {redirectTo: path};
+      routes[redirectPath] = extend(
+        {redirectTo: path},
+        pathRegExp(redirectPath, route)
+      );
     }
 
     return this;
   };
+
+   /**
+    * @param path {string} path
+    * @param opts {Object} options
+    * @return {?Object}
+    *
+    * @description
+    * Normalizes the given path, returning a regular expression
+    * and the original path.
+    *
+    * Inspired by pathRexp in visionmedia/express/lib/utils.js.
+    */
+  function pathRegExp(path, opts) {
+    var insensitive = opts.caseInsensitiveMatch,
+        ret = {
+          originalPath: path,
+          regexp: path
+        },
+        keys = ret.keys = [];
+
+    path = path
+      .replace(/([().])/g, '\\$1')
+      .replace(/(\/)?:(\w+)([\?|\*])?/g, function(_, slash, key, option){
+        var optional = option === '?' ? option : null;
+        var star = option === '*' ? option : null;
+        keys.push({ name: key, optional: !!optional });
+        slash = slash || '';
+        return ''
+          + (optional ? '' : slash)
+          + '(?:'
+          + (optional ? slash : '')
+          + (star && '(.+)?' || '([^/]+)?') + ')'
+          + (optional || '');
+      })
+      .replace(/([\/$\*])/g, '\\$1');
+
+    ret.regexp = new RegExp('^' + path + '$', insensitive ? 'i' : '');
+    return ret;
+  }
 
   /**
    * @ngdoc method
@@ -172,13 +227,15 @@ function $RouteProvider(){
      * @property {Array.<Object>} routes Array of all configured routes.
      *
      * @description
-     * Is used for deep-linking URLs to controllers and views (HTML partials).
+     * `$route` is used for deep-linking URLs to controllers and views (HTML partials).
      * It watches `$location.url()` and tries to map the path to an existing route definition.
+     *
+     * Requires the {@link ngRoute `ngRoute`} module to be installed.
      *
      * You can define routes through {@link ngRoute.$routeProvider $routeProvider}'s API.
      *
-     * The `$route` service is typically used in conjunction with {@link ngRoute.directive:ngView ngView}
-     * directive and the {@link ngRoute.$routeParams $routeParams} service.
+     * The `$route` service is typically used in conjunction with the {@link ngRoute.directive:ngView `ngView`}
+     * directive and the {@link ngRoute.$routeParams `$routeParams`} service.
      *
      * @example
        This example shows how changing the URL hash causes the `$route` to match a route against the
@@ -220,7 +277,7 @@ function $RouteProvider(){
        </file>
 
        <file name="script.js">
-         angular.module('ngView', ['ngRoute'], function($routeProvider, $locationProvider) {
+         angular.module('ngView', ['ngRoute']).config(function($routeProvider, $locationProvider) {
            $routeProvider.when('/Book/:bookId', {
              templateUrl: 'book.html',
              controller: BookCntl,
@@ -362,50 +419,36 @@ function $RouteProvider(){
 
     /**
      * @param on {string} current url
-     * @param when {string} route when template to match the url against
-     * @param whenProperties {Object} properties to define when's matching behavior
+     * @param route {Object} route regexp to match the url against
      * @return {?Object}
+     *
+     * @description
+     * Check if the route matches the current url.
+     *
+     * Inspired by match in
+     * visionmedia/express/lib/router/router.js.
      */
-    function switchRouteMatcher(on, when, whenProperties) {
-      // TODO(i): this code is convoluted and inefficient, we should construct the route matching
-      //   regex only once and then reuse it
+    function switchRouteMatcher(on, route) {
+      var keys = route.keys,
+          params = {};
 
-      // Escape regexp special characters.
-      when = '^' + when.replace(/[-\/\\^$:*+?.()|[\]{}]/g, "\\$&") + '$';
+      if (!route.regexp) return null;
 
-      var regex = '',
-          params = [],
-          dst = {};
+      var m = route.regexp.exec(on);
+      if (!m) return null;
 
-      var re = /\\([:*])(\w+)/g,
-          paramMatch,
-          lastMatchedIndex = 0;
+      for (var i = 1, len = m.length; i < len; ++i) {
+        var key = keys[i - 1];
 
-      while ((paramMatch = re.exec(when)) !== null) {
-        // Find each :param in `when` and replace it with a capturing group.
-        // Append all other sections of when unchanged.
-        regex += when.slice(lastMatchedIndex, paramMatch.index);
-        switch(paramMatch[1]) {
-          case ':':
-            regex += '([^\\/]*)';
-            break;
-          case '*':
-            regex += '(.*)';
-            break;
+        var val = 'string' == typeof m[i]
+              ? decodeURIComponent(m[i])
+              : m[i];
+
+        if (key && val) {
+          params[key.name] = val;
         }
-        params.push(paramMatch[2]);
-        lastMatchedIndex = re.lastIndex;
       }
-      // Append trailing path part.
-      regex += when.substr(lastMatchedIndex);
-
-      var match = on.match(new RegExp(regex, whenProperties.caseInsensitiveMatch ? 'i' : ''));
-      if (match) {
-        forEach(params, function(name, index) {
-          dst[name] = match[index + 1];
-        });
-      }
-      return match ? dst : null;
+      return params;
     }
 
     function updateRoute() {
@@ -489,7 +532,7 @@ function $RouteProvider(){
       // Match a route
       var params, match;
       forEach(routes, function(route, path) {
-        if (!match && (params = switchRouteMatcher($location.path(), path, route))) {
+        if (!match && (params = switchRouteMatcher($location.path(), route))) {
           match = inherit(route, {
             params: extend({}, $location.search(), params),
             pathParams: params});
@@ -506,7 +549,7 @@ function $RouteProvider(){
     function interpolate(string, params) {
       var result = [];
       forEach((string||'').split(':'), function(segment, i) {
-        if (i == 0) {
+        if (i === 0) {
           result.push(segment);
         } else {
           var segmentMatch = segment.match(/(\w+)(.*)/);

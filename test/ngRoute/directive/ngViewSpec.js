@@ -556,7 +556,7 @@ describe('ngView animations', function() {
           $location.path('/foo');
           $rootScope.$digest();
 
-          var item = $animate.process('enter').element;
+          var item = $animate.flushNext('enter').element;
           expect(item.text()).toBe('data');
         }));
 
@@ -570,13 +570,13 @@ describe('ngView animations', function() {
       $location.path('/foo');
       $rootScope.$digest();
 
-      item = $animate.process('enter').element;
+      item = $animate.flushNext('enter').element;
       expect(item.text()).toBe('foo');
 
       $location.path('/');
       $rootScope.$digest();
 
-      item = $animate.process('leave').element;
+      item = $animate.flushNext('leave').element;
       expect(item.text()).toBe('foo');
     }));
 
@@ -590,16 +590,56 @@ describe('ngView animations', function() {
         $location.path('/foo');
         $rootScope.$digest();
 
-        item = $animate.process('enter').element;
+        item = $animate.flushNext('enter').element;
         expect(item.text()).toBe('data');
 
         $location.path('/bar');
         $rootScope.$digest();
 
-        var itemA = $animate.process('leave').element;
+        var itemA = $animate.flushNext('leave').element;
         expect(itemA).not.toEqual(itemB);
-        var itemB = $animate.process('enter').element;
+        var itemB = $animate.flushNext('enter').element;
     }));
+
+    it('should render ngClass on ngView',
+      inject(function($compile, $rootScope, $templateCache, $animate, $location, $timeout) {
+
+        var item;
+        $rootScope.tpl = 'one';
+        $rootScope.klass = 'classy';
+        element = $compile(html('<div><div ng-view ng-class="klass"></div></div>'))($rootScope);
+        $rootScope.$digest();
+
+        $location.path('/foo');
+        $rootScope.$digest();
+
+        item = $animate.flushNext('enter').element;
+
+        $animate.flushNext('addClass').element;
+        $animate.flushNext('addClass').element;
+
+        expect(item.hasClass('classy')).toBe(true);
+
+        $rootScope.klass = 'boring';
+        $rootScope.$digest();
+
+        $animate.flushNext('removeClass').element;
+        $animate.flushNext('addClass').element;
+
+        expect(item.hasClass('classy')).toBe(false);
+        expect(item.hasClass('boring')).toBe(true);
+
+        $location.path('/bar');
+        $rootScope.$digest();
+
+        $animate.flushNext('leave').element;
+        item = $animate.flushNext('enter').element;
+
+        $animate.flushNext('addClass').element;
+        $animate.flushNext('addClass').element;
+
+        expect(item.hasClass('boring')).toBe(true);
+      }));
   });
 
   it('should not double compile when the route changes', function() {
@@ -627,32 +667,27 @@ describe('ngView animations', function() {
       $location.path('/foo');
       $rootScope.$digest();
 
-      $animate.process('enter'); //ngView
-
-      $timeout.flush();
-
-      $animate.process('enter'); //repeat 1
-      $animate.process('enter'); //repeat 2
-
-      $timeout.flush();
+      $animate.flushNext('enter'); //ngView
+      $animate.flushNext('enter'); //repeat 1
+      $animate.flushNext('enter'); //repeat 2
 
       expect(element.text()).toEqual('12');
 
       $location.path('/bar');
       $rootScope.$digest();
 
-      $animate.process('leave'); //ngView old
-      $timeout.flush();
+      $animate.flushNext('leave'); //ngView old
 
-      $animate.process('enter'); //ngView new
-      $timeout.flush();
+      $rootScope.$digest();
+
+      $animate.flushNext('enter'); //ngView new
 
       expect(n(element.text())).toEqual(''); //this is midway during the animation
 
-      $animate.process('enter'); //ngRepeat 3
-      $animate.process('enter'); //ngRepeat 4
+      $animate.flushNext('enter'); //ngRepeat 3
+      $animate.flushNext('enter'); //ngRepeat 4
 
-      $timeout.flush();
+      $rootScope.$digest();
 
       expect(element.text()).toEqual('34');
 

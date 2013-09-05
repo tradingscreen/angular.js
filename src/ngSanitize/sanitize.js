@@ -1,30 +1,19 @@
 'use strict';
 
-var ngSanitizeMinErr = angular.$$minErr('ngSanitize');
+var $sanitizeMinErr = angular.$$minErr('$sanitize');
 
 /**
  * @ngdoc overview
  * @name ngSanitize
  * @description
- * 
+ *
+ * # ngSanitize
+ *
  * The `ngSanitize` module provides functionality to sanitize HTML.
- * 
- * # Installation
- * As a separate module, it must be loaded after Angular core is loaded; otherwise, an 'Uncaught Error:
- * No module: ngSanitize' runtime error will occur.
  *
- * <pre>
- *   <script src="angular.js"></script>
- *   <script src="angular-sanitize.js"></script>
- * </pre>
+ * {@installModule sanitize}
  *
- * # Usage
- * To make sure the module is available to your application, declare it as a dependency of you application
- * module.
- *
- * <pre>
- *   angular.module('app', ['ngSanitize']);
- * </pre>
+ * See {@link ngSanitize.$sanitize `$sanitize`} for usage.
  */
 
 /*
@@ -274,7 +263,7 @@ function htmlParser( html, handler ) {
     }
 
     if ( html == last ) {
-      throw ngSanitizeMinErr('badparse', "The sanitizer was unable to parse the following block of html: {0}", html);
+      throw $sanitizeMinErr('badparse', "The sanitizer was unable to parse the following block of html: {0}", html);
     }
     last = html;
   }

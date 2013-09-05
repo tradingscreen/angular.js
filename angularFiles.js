@@ -75,11 +75,11 @@ angularFiles = {
     'src/ngSanitize/sanitize.js',
     'src/ngSanitize/filter/linky.js',
     'src/ngMock/angular-mocks.js',
-    'src/ngMobile/mobile.js',
-    'src/ngMobile/swipe.js',
-    'src/ngMobile/directive/ngClick.js',
-    'src/ngMobile/directive/ngSwipe.js',
-    'docs/components/angular-bootstrap/bootstrap.js'
+    'src/ngTouch/touch.js',
+    'src/ngTouch/swipe.js',
+    'src/ngTouch/directive/ngClick.js',
+    'src/ngTouch/directive/ngSwipe.js',
+    'docs/components/angular-bootstrap/bootstrap.js',
   ],
 
   'angularScenario': [
@@ -100,8 +100,7 @@ angularFiles = {
   ],
 
   'angularTest': [
-    'test/testabilityPatch.js',
-    'test/matchers.js',
+    'test/helpers/*.js',
     'test/ngScenario/*.js',
     'test/ngScenario/output/*.js',
     'test/*.js',
@@ -113,7 +112,7 @@ angularFiles = {
     'test/ngRoute/**/*.js',
     'test/ngSanitize/**/*.js',
     'test/ngMock/*.js',
-    'test/ngMobile/**/*.js'
+    'test/ngTouch/**/*.js'
   ],
 
   'karma': [
@@ -143,14 +142,13 @@ angularFiles = {
     'build/angular.js',
     '@angularSrcModules',
     'src/ngScenario/browserTrigger.js',
-    'test/matchers.js',
-    'test/testabilityPatch.js',
+    'test/helpers/*.js',
     'test/ngMock/*.js',
     'test/ngCookies/*.js',
     'test/ngRoute/**/*.js',
     'test/ngResource/*.js',
     'test/ngSanitize/**/*.js',
-    'test/ngMobile/**/*.js'
+    'test/ngTouch/**/*.js'
   ],
 
   'karmaJquery': [

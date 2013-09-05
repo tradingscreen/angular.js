@@ -78,6 +78,26 @@ describe('ngRepeat', function() {
     expect(element.text()).toEqual('x;y;x;');
   });
 
+  it('should iterate over an array-like class', function() {
+    function Collection() {}
+    Collection.prototype = new Array();
+    Collection.prototype.length = 0;
+
+    var collection = new Collection();
+    collection.push({ name: "x" });
+    collection.push({ name: "y" });
+    collection.push({ name: "z" });
+
+    element = $compile(
+      '<ul>' +
+        '<li ng-repeat="item in items">{{item.name}};</li>' +
+      '</ul>')(scope);
+
+    scope.items = collection;
+    scope.$digest();
+    expect(element.find('li').length).toEqual(3);
+    expect(element.text()).toEqual('x;y;z;');
+  });
 
   it('should iterate over on object/map', function() {
     element = $compile(
@@ -330,7 +350,7 @@ describe('ngRepeat', function() {
     element = jqLite('<ul><li ng-repeat="i dont parse"></li></ul>');
     $compile(element)(scope);
     expect($exceptionHandler.errors.shift()[0].message).
-        toBe("[ngRepeat:iexp] Expected expression in form of '_item_ in _collection_[ track by _id_]' but got 'i dont parse'.");
+        toMatch(/^\[ngRepeat:iexp\] Expected expression in form of '_item_ in _collection_\[ track by _id_\]' but got 'i dont parse'\./);
   });
 
 
@@ -338,7 +358,7 @@ describe('ngRepeat', function() {
       element = jqLite('<ul><li ng-repeat="i dont parse in foo"></li></ul>');
       $compile(element)(scope);
     expect($exceptionHandler.errors.shift()[0].message).
-        toBe("[ngRepeat:iidexp] '_item_' in '_item_ in _collection_' should be an identifier or '(_key_, _value_)' expression, but got 'i dont parse'.");
+        toMatch(/^\[ngRepeat:iidexp\] '_item_' in '_item_ in _collection_' should be an identifier or '\(_key_, _value_\)' expression, but got 'i dont parse'\./);
   });
 
 
@@ -753,7 +773,7 @@ describe('ngRepeat', function() {
       scope.items = [a, a, a];
       scope.$digest();
       expect($exceptionHandler.errors.shift().message).
-          toEqual("[ngRepeat:dupes] Duplicates in a repeater are not allowed. Use 'track by' expression to specify unique keys. Repeater: item in items, Duplicate key: object:003");
+          toMatch(/^\[ngRepeat:dupes\] Duplicates in a repeater are not allowed\. Use 'track by' expression to specify unique keys\. Repeater: item in items, Duplicate key: object:003/);
 
       // recover
       scope.items = [a];
@@ -773,7 +793,7 @@ describe('ngRepeat', function() {
       scope.items = [d, d, d];
       scope.$digest();
       expect($exceptionHandler.errors.shift().message).
-          toEqual("[ngRepeat:dupes] Duplicates in a repeater are not allowed. Use 'track by' expression to specify unique keys. Repeater: item in items, Duplicate key: object:009");
+          toMatch(/^\[ngRepeat:dupes\] Duplicates in a repeater are not allowed\. Use 'track by' expression to specify unique keys\. Repeater: item in items, Duplicate key: object:009/);
 
       // recover
       scope.items = [a];
@@ -887,13 +907,13 @@ describe('ngRepeat animations', function() {
     $rootScope.items = ['1','2','3'];
     $rootScope.$digest();
 
-    item = $animate.process('enter').element;
+    item = $animate.flushNext('enter').element;
     expect(item.text()).toBe('1');
 
-    item = $animate.process('enter').element;
+    item = $animate.flushNext('enter').element;
     expect(item.text()).toBe('2');
 
-    item = $animate.process('enter').element;
+    item = $animate.flushNext('enter').element;
     expect(item.text()).toBe('3');
   }));
 
@@ -912,19 +932,19 @@ describe('ngRepeat animations', function() {
     $rootScope.items = ['1','2','3'];
     $rootScope.$digest();
 
-    item = $animate.process('enter').element;
+    item = $animate.flushNext('enter').element;
     expect(item.text()).toBe('1');
 
-    item = $animate.process('enter').element;
+    item = $animate.flushNext('enter').element;
     expect(item.text()).toBe('2');
 
-    item = $animate.process('enter').element;
+    item = $animate.flushNext('enter').element;
     expect(item.text()).toBe('3');
 
     $rootScope.items = ['1','3'];
     $rootScope.$digest();
 
-    item = $animate.process('leave').element;
+    item = $animate.flushNext('leave').element;
     expect(item.text()).toBe('2');
   }));
 
@@ -944,22 +964,22 @@ describe('ngRepeat animations', function() {
       $rootScope.items = ['1','2','3'];
       $rootScope.$digest();
 
-      item = $animate.process('enter').element;
+      item = $animate.flushNext('enter').element;
       expect(item.text()).toBe('1');
 
-      item = $animate.process('enter').element;
+      item = $animate.flushNext('enter').element;
       expect(item.text()).toBe('2');
 
-      item = $animate.process('enter').element;
+      item = $animate.flushNext('enter').element;
       expect(item.text()).toBe('3');
 
       $rootScope.items = ['2','3','1'];
       $rootScope.$digest();
 
-      item = $animate.process('move').element;
+      item = $animate.flushNext('move').element;
       expect(item.text()).toBe('2');
 
-      item = $animate.process('move').element;
+      item = $animate.flushNext('move').element;
       expect(item.text()).toBe('1');
   }));
 

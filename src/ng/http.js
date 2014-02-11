@@ -1024,7 +1024,7 @@ function $HttpProvider() {
         }
 
         $httpBackend(config.method, url, reqData, done, reqHeaders, config.timeout,
-            config.withCredentials, config.responseType);
+            config.withCredentials, config.responseType, isDefined(config.async) ? config.async : true);
       }
 
       return promise;

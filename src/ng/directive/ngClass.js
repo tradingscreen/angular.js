@@ -64,12 +64,24 @@ function classDirective(name, selector) {
 
 /**
  * @ngdoc directive
- * @name ng.directive:ngClass
+ * @name ngClass
  * @restrict AC
  *
  * @description
  * The `ngClass` directive allows you to dynamically set CSS classes on an HTML element by databinding
  * an expression that represents all classes to be added.
+ *
+ * The directive operates in three different ways, depending on which of three types the expression
+ * evaluates to:
+ *
+ * 1. If the expression evaluates to a string, the string should be one or more space-delimited class
+ * names.
+ *
+ * 2. If the expression evaluates to an array, each element of the array should be a string that is
+ * one or more space-delimited class names.
+ *
+ * 3. If the expression evaluates to an object, then for each key-value pair of the
+ * object with a truthy value the corresponding key is used as a class name.
  *
  * The directive won't add duplicate classes if a particular class was already set.
  *
@@ -114,8 +126,8 @@ function classDirective(name, selector) {
            color: red;
        }
      </file>
-     <file name="protractorTest.js">
-       var ps = element.all(by.css('.doc-example-live p'));
+     <file name="protractor.js" type="protractor">
+       var ps = element.all(by.css('p'));
 
        it('should let you toggle the class', function() {
 
@@ -150,7 +162,7 @@ function classDirective(name, selector) {
 
    The example below demonstrates how to perform animations using ngClass.
 
-   <example animations="true">
+   <example module="ngAnimate" deps="angular-animate.js" animations="true">
      <file name="index.html">
       <input id="setbtn" type="button" value="set" ng-click="myVar='my-class'">
       <input id="clearbtn" type="button" value="clear" ng-click="myVar=''">
@@ -168,7 +180,7 @@ function classDirective(name, selector) {
          font-size:3em;
        }
      </file>
-     <file name="protractorTest.js">
+     <file name="protractor.js" type="protractor">
        it('should check ng-class', function() {
          expect(element(by.css('.base-class')).getAttribute('class')).not.
            toMatch(/my-class/);
@@ -191,14 +203,14 @@ function classDirective(name, selector) {
    The ngClass directive still supports CSS3 Transitions/Animations even if they do not follow the ngAnimate CSS naming structure.
    Upon animation ngAnimate will apply supplementary CSS classes to track the start and end of an animation, but this will not hinder
    any pre-existing CSS transitions already on the element. To get an idea of what happens during a class-based animation, be sure
-   to view the step by step details of {@link ngAnimate.$animate#methods_addclass $animate.addClass} and
-   {@link ngAnimate.$animate#methods_removeclass $animate.removeClass}.
+   to view the step by step details of {@link ngAnimate.$animate#addclass $animate.addClass} and
+   {@link ngAnimate.$animate#removeclass $animate.removeClass}.
  */
 var ngClassDirective = classDirective('', true);
 
 /**
  * @ngdoc directive
- * @name ng.directive:ngClassOdd
+ * @name ngClassOdd
  * @restrict AC
  *
  * @description
@@ -232,7 +244,7 @@ var ngClassDirective = classDirective('', true);
          color: blue;
        }
      </file>
-     <file name="protractorTest.js">
+     <file name="protractor.js" type="protractor">
        it('should check ng-class-odd and ng-class-even', function() {
          expect(element(by.repeater('name in names').row(0).column('name')).getAttribute('class')).
            toMatch(/odd/);
@@ -246,7 +258,7 @@ var ngClassOddDirective = classDirective('Odd', 0);
 
 /**
  * @ngdoc directive
- * @name ng.directive:ngClassEven
+ * @name ngClassEven
  * @restrict AC
  *
  * @description
@@ -280,7 +292,7 @@ var ngClassOddDirective = classDirective('Odd', 0);
          color: blue;
        }
      </file>
-     <file name="protractorTest.js">
+     <file name="protractor.js" type="protractor">
        it('should check ng-class-odd and ng-class-even', function() {
          expect(element(by.repeater('name in names').row(0).column('name')).getAttribute('class')).
            toMatch(/odd/);

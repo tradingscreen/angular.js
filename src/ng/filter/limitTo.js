@@ -1,8 +1,8 @@
 'use strict';
 
 /**
- * @ngdoc function
- * @name ng.filter:limitTo
+ * @ngdoc filter
+ * @name limitTo
  * @function
  *
  * @description
@@ -11,16 +11,16 @@
  * the value and sign (positive or negative) of `limit`.
  *
  * @param {Array|string} input Source array or string to be limited.
- * @param {string|number} limit The length of the returned array or string. If the `limit` number 
+ * @param {string|number} limit The length of the returned array or string. If the `limit` number
  *     is positive, `limit` number of items from the beginning of the source array/string are copied.
- *     If the number is negative, `limit` number  of items from the end of the source array/string 
+ *     If the number is negative, `limit` number  of items from the end of the source array/string
  *     are copied. The `limit` will be trimmed if it exceeds `array.length`
  * @returns {Array|string} A new sub-array or substring of length `limit` or less if input array
  *     had less than `limit` elements.
  *
  * @example
-   <doc:example>
-     <doc:source>
+   <example>
+     <file name="index.html">
        <script>
          function Ctrl($scope) {
            $scope.numbers = [1,2,3,4,5,6,7,8,9];
@@ -35,8 +35,8 @@
          Limit {{letters}} to: <input type="integer" ng-model="letterLimit">
          <p>Output letters: {{ letters | limitTo:letterLimit }}</p>
        </div>
-     </doc:source>
-     <doc:protractor>
+     </file>
+     <file name="protractor.js" type="protractor">
        var numLimitInput = element(by.model('numLimit'));
        var letterLimitInput = element(by.model('letterLimit'));
        var limitedNumbers = element(by.binding('numbers | limitTo:numLimit'));
@@ -66,13 +66,13 @@
          expect(limitedNumbers.getText()).toEqual('Output numbers: [1,2,3,4,5,6,7,8,9]');
          expect(limitedLetters.getText()).toEqual('Output letters: abcdefghi');
        });
-     </doc:protractor>
-   </doc:example>
+     </file>
+   </example>
  */
 function limitToFilter(){
   return function(input, limit) {
     if (!isArray(input) && !isString(input)) return input;
-    
+
     limit = int(limit);
 
     if (isString(input)) {

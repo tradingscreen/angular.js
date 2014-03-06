@@ -55,7 +55,7 @@ function ensureSafeObject(obj, fullExpression) {
           'Referencing the Window in Angular expressions is disallowed! Expression: {0}',
           fullExpression);
     } else if (// isElement(obj)
-        obj.children && (obj.nodeName || (obj.on && obj.find))) {
+        obj.children && (obj.nodeName || (obj.prop && obj.attr && obj.find))) {
       throw $parseMinErr('isecdom',
           'Referencing DOM nodes in Angular expressions is disallowed! Expression: {0}',
           fullExpression);
@@ -785,6 +785,10 @@ Parser.prototype = {
     var allConstant = true;
     if (this.peekToken().text !== ']') {
       do {
+        if (this.peek(']')) {
+          // Support trailing commas per ES5.1.
+          break;
+        }
         var elementFn = this.expression();
         elementFns.push(elementFn);
         if (!elementFn.constant) {
@@ -811,6 +815,10 @@ Parser.prototype = {
     var allConstant = true;
     if (this.peekToken().text !== '}') {
       do {
+        if (this.peek('}')) {
+          // Support trailing commas per ES5.1.
+          break;
+        }
         var token = this.expect(),
         key = token.string || token.text;
         this.consume(':');
@@ -1083,15 +1091,15 @@ function getterFn(path, options, fullExp) {
 ///////////////////////////////////
 
 /**
- * @ngdoc function
- * @name ng.$parse
- * @function
+ * @ngdoc service
+ * @name $parse
+ * @kind function
  *
  * @description
  *
  * Converts Angular {@link guide/expression expression} into a function.
  *
- * <pre>
+ * ```js
  *   var getter = $parse('user.name');
  *   var setter = getter.assign;
  *   var context = {user:{name:'angular'}};
@@ -1101,7 +1109,7 @@ function getterFn(path, options, fullExp) {
  *   setter(context, 'newValue');
  *   expect(context.user.name).toEqual('newValue');
  *   expect(getter(context, locals)).toEqual('local');
- * </pre>
+ * ```
  *
  *
  * @param {string} expression String expression to compile.
@@ -1124,8 +1132,8 @@ function getterFn(path, options, fullExp) {
 
 
 /**
- * @ngdoc object
- * @name ng.$parseProvider
+ * @ngdoc provider
+ * @name $parseProvider
  * @function
  *
  * @description
@@ -1146,8 +1154,7 @@ function $ParseProvider() {
    * @deprecated Promise unwrapping via $parse is deprecated and will be removed in the future.
    *
    * @ngdoc method
-   * @name ng.$parseProvider#unwrapPromises
-   * @methodOf ng.$parseProvider
+   * @name $parseProvider#unwrapPromises
    * @description
    *
    * **This feature is deprecated, see deprecation notes below for more info**
@@ -1201,8 +1208,7 @@ function $ParseProvider() {
    * @deprecated Promise unwrapping via $parse is deprecated and will be removed in the future.
    *
    * @ngdoc method
-   * @name ng.$parseProvider#logPromiseWarnings
-   * @methodOf ng.$parseProvider
+   * @name $parseProvider#logPromiseWarnings
    * @description
    *
    * Controls whether Angular should log a warning on any encounter of a promise in an expression.

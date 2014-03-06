@@ -335,8 +335,7 @@ describe('ngClass animations', function() {
 
       $rootScope.val = 'two';
       $rootScope.$digest();
-      expect($animate.queue.shift().event).toBe('removeClass');
-      expect($animate.queue.shift().event).toBe('addClass');
+      expect($animate.queue.shift().event).toBe('setClass');
       expect($animate.queue.length).toBe(0);
     });
   });
@@ -346,6 +345,7 @@ describe('ngClass animations', function() {
     //mocks are not used since the enter delegation method is called before addClass and
     //it makes it impossible to test to see that addClass is called first
     module('ngAnimate');
+    module('ngAnimateMock');
 
     var digestQueue = [];
     module(function($animateProvider) {
@@ -368,7 +368,7 @@ describe('ngClass animations', function() {
         };
       };
     });
-    inject(function($compile, $rootScope, $rootElement, $animate, $timeout, $document) {
+    inject(function($compile, $rootScope, $browser, $rootElement, $animate, $timeout, $document) {
 
       // Enable animations by triggering the first item in the postDigest queue
       digestQueue.shift()();
@@ -408,7 +408,7 @@ describe('ngClass animations', function() {
       //is spaced-out then it is required so that the original digestion
       //is kicked into gear
       $rootScope.$digest();
-      $timeout.flush();
+      $animate.triggerCallbacks();
 
       expect(element.data('state')).toBe('crazy-enter');
       expect(enterComplete).toBe(true);
@@ -450,12 +450,9 @@ describe('ngClass animations', function() {
       $rootScope.$digest();
 
       item = $animate.queue.shift();
-      expect(item.event).toBe('removeClass');
-      expect(item.args[1]).toBe('two');
-
-      item = $animate.queue.shift();
-      expect(item.event).toBe('addClass');
+      expect(item.event).toBe('setClass');
       expect(item.args[1]).toBe('three');
+      expect(item.args[2]).toBe('two');
 
       expect($animate.queue.length).toBe(0);
     });

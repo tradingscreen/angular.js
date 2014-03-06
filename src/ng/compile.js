@@ -19,8 +19,8 @@
 
 
 /**
- * @ngdoc function
- * @name ng.$compile
+ * @ngdoc service
+ * @name $compile
  * @function
  *
  * @description
@@ -28,7 +28,7 @@
  * can then be used to link {@link ng.$rootScope.Scope `scope`} and the template together.
  *
  * The compilation is a process of walking the DOM tree and matching DOM elements to
- * {@link ng.$compileProvider#methods_directive directives}.
+ * {@link ng.$compileProvider#directive directives}.
  *
  * <div class="alert alert-warning">
  * **Note:** This document is an in-depth reference of all directive options.
@@ -50,7 +50,7 @@
  *
  * Here's an example directive declared with a Directive Definition Object:
  *
- * <pre>
+ * ```js
  *   var myModule = angular.module(...);
  *
  *   myModule.directive('directiveName', function factory(injectables) {
@@ -83,7 +83,7 @@
  *     };
  *     return directiveDefinitionObject;
  *   });
- * </pre>
+ * ```
  *
  * <div class="alert alert-warning">
  * **Note:** Any unspecified options will use the default value. You can see the default values below.
@@ -91,7 +91,7 @@
  *
  * Therefore the above can be simplified as:
  *
- * <pre>
+ * ```js
  *   var myModule = angular.module(...);
  *
  *   myModule.directive('directiveName', function factory(injectables) {
@@ -102,13 +102,13 @@
  *     // or
  *     // return function postLink(scope, iElement, iAttrs) { ... }
  *   });
- * </pre>
+ * ```
  *
  *
  *
  * ### Directive Definition Object
  *
- * The directive definition object provides instructions to the {@link api/ng.$compile
+ * The directive definition object provides instructions to the {@link ng.$compile
  * compiler}. The attributes are:
  *
  * #### `priority`
@@ -231,7 +231,7 @@
  * You can specify `templateUrl` as a string representing the URL or as a function which takes two
  * arguments `tElement` and `tAttrs` (described in the `compile` function api below) and returns
  * a string value representing the url.  In either case, the template URL is passed through {@link
- * api/ng.$sce#methods_getTrustedResourceUrl $sce.getTrustedResourceUrl}.
+ * api/ng.$sce#getTrustedResourceUrl $sce.getTrustedResourceUrl}.
  *
  *
  * #### `replace`
@@ -243,7 +243,7 @@
  *
  * #### `transclude`
  * compile the content of the element and make it available to the directive.
- * Typically used with {@link api/ng.directive:ngTransclude
+ * Typically used with {@link ng.directive:ngTransclude
  * ngTransclude}. The advantage of transclusion is that the linking function receives a
  * transclusion function which is pre-bound to the correct scope. In a typical setup the widget
  * creates an `isolate` scope, but the transclusion is not a child, but a sibling of the `isolate`
@@ -256,15 +256,15 @@
  *
  * #### `compile`
  *
- * <pre>
+ * ```js
  *   function compile(tElement, tAttrs, transclude) { ... }
- * </pre>
+ * ```
  *
  * The compile function deals with transforming the template DOM. Since most directives do not do
  * template transformation, it is not used often. Examples that require compile functions are
  * directives that transform template DOM, such as {@link
  * api/ng.directive:ngRepeat ngRepeat}, or load the contents
- * asynchronously, such as {@link api/ngRoute.directive:ngView ngView}. The
+ * asynchronously, such as {@link ngRoute.directive:ngView ngView}. The
  * compile function takes the following arguments.
  *
  *   * `tElement` - template element - The element where the directive has been declared. It is
@@ -301,16 +301,16 @@
  * #### `link`
  * This property is used only if the `compile` property is not defined.
  *
- * <pre>
+ * ```js
  *   function link(scope, iElement, iAttrs, controller, transcludeFn) { ... }
- * </pre>
+ * ```
  *
  * The link function is responsible for registering DOM listeners as well as updating the DOM. It is
  * executed after the template has been cloned. This is where most of the directive logic will be
  * put.
  *
- *   * `scope` - {@link api/ng.$rootScope.Scope Scope} - The scope to be used by the
- *     directive for registering {@link api/ng.$rootScope.Scope#methods_$watch watches}.
+ *   * `scope` - {@link ng.$rootScope.Scope Scope} - The scope to be used by the
+ *     directive for registering {@link ng.$rootScope.Scope#$watch watches}.
  *
  *   * `iElement` - instance element - The element where the directive is to be used. It is safe to
  *     manipulate the children of the element only in `postLink` function since the children have
@@ -341,7 +341,7 @@
  * <a name="Attributes"></a>
  * ### Attributes
  *
- * The {@link api/ng.$compile.directive.Attributes Attributes} object - passed as a parameter in the
+ * The {@link ng.$compile.directive.Attributes Attributes} object - passed as a parameter in the
  * `link()` or `compile()` functions. It has a variety of uses.
  *
  * accessing *Normalized attribute names:*
@@ -361,7 +361,7 @@
  *   the only way to easily get the actual value because during the linking phase the interpolation
  *   hasn't been evaluated yet and so the value is at this time set to `undefined`.
  *
- * <pre>
+ * ```js
  * function linkingFn(scope, elm, attrs, ctrl) {
  *   // get the attribute value
  *   console.log(attrs.ngModel);
@@ -374,7 +374,7 @@
  *     console.log('ngModel has changed value to ' + value);
  *   });
  * }
- * </pre>
+ * ```
  *
  * Below is an example using `$compileProvider`.
  *
@@ -383,8 +383,8 @@
  * to illustrate how `$compile` works.
  * </div>
  *
- <doc:example module="compile">
-   <doc:source>
+ <example module="compile">
+   <file name="index.html">
     <script>
       angular.module('compile', [], function($compileProvider) {
         // configure new 'compile' directive by passing a directive
@@ -423,8 +423,8 @@
       <textarea ng-model="html"></textarea> <br>
       <div compile="html"></div>
     </div>
-   </doc:source>
-   <doc:protractor>
+   </file>
+   <file name="protractor.js" type="protractor">
      it('should auto compile', function() {
        var textarea = $('textarea');
        var output = $('div[compile]');
@@ -434,16 +434,16 @@
        textarea.sendKeys('{{name}}!');
        expect(output.getText()).toBe('Angular!');
      });
-   </doc:protractor>
- </doc:example>
+   </file>
+ </example>
 
  *
  *
  * @param {string|DOMElement} element Element or HTML string to compile into a template function.
- * @param {function(angular.Scope[, cloneAttachFn]} transclude function available to directives.
- * @param {number} maxPriority only apply directives lower then given priority (Only effects the
+ * @param {function(angular.Scope, cloneAttachFn=)} transclude function available to directives.
+ * @param {number} maxPriority only apply directives lower than given priority (Only effects the
  *                 root element(s), not their children)
- * @returns {function(scope[, cloneAttachFn])} a link function which is used to bind template
+ * @returns {function(scope, cloneAttachFn=)} a link function which is used to bind template
  * (a DOM element/tree) to a scope. Where:
  *
  *  * `scope` - A {@link ng.$rootScope.Scope Scope} to bind to.
@@ -465,14 +465,14 @@
  *
  * - If you are not asking the linking function to clone the template, create the DOM element(s)
  *   before you send them to the compiler and keep this reference around.
- *   <pre>
+ *   ```js
  *     var element = $compile('<p>{{total}}</p>')(scope);
- *   </pre>
+ *   ```
  *
  * - if on the other hand, you need the element to be cloned, the view reference from the original
  *   example would not point to the clone, but rather to the original template that was cloned. In
  *   this case, you can access the clone via the cloneAttachFn:
- *   <pre>
+ *   ```js
  *     var templateElement = angular.element('<p>{{total}}</p>'),
  *         scope = ....;
  *
@@ -481,7 +481,7 @@
  *     });
  *
  *     //now we have reference to the cloned DOM via `clonedElement`
- *   </pre>
+ *   ```
  *
  *
  * For information on how the compiler works, see the
@@ -491,8 +491,8 @@
 var $compileMinErr = minErr('$compile');
 
 /**
- * @ngdoc service
- * @name ng.$compileProvider
+ * @ngdoc provider
+ * @name $compileProvider
  * @function
  *
  * @description
@@ -502,7 +502,8 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
   var hasDirectives = {},
       Suffix = 'Directive',
       COMMENT_DIRECTIVE_REGEXP = /^\s*directive\:\s*([\d\w\-_]+)\s+(.*)$/,
-      CLASS_DIRECTIVE_REGEXP = /(([\d\w\-_]+)(?:\:([^;]+))?;?)/;
+      CLASS_DIRECTIVE_REGEXP = /(([\d\w\-_]+)(?:\:([^;]+))?;?)/,
+      TABLE_CONTENT_REGEXP = /^<\s*(tr|th|td|tbody)(\s+[^>]*)?>/i;
 
   // Ref: http://developers.whatwg.org/webappapis.html#event-handler-idl-attributes
   // The assumption is that future DOM event attribute names will begin with
@@ -510,9 +511,8 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
   var EVENT_HANDLER_ATTR_REGEXP = /^(on[a-z]+|formaction)$/;
 
   /**
-   * @ngdoc function
-   * @name ng.$compileProvider#directive
-   * @methodOf ng.$compileProvider
+   * @ngdoc method
+   * @name $compileProvider#directive
    * @function
    *
    * @description
@@ -521,7 +521,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
    * @param {string|Object} name Name of the directive in camel-case (i.e. <code>ngBind</code> which
    *    will match as <code>ng-bind</code>), or an object map of directives where the keys are the
    *    names and the values are the factories.
-   * @param {function|Array} directiveFactory An injectable directive factory function. See
+   * @param {Function|Array} directiveFactory An injectable directive factory function. See
    *    {@link guide/directive} for more info.
    * @returns {ng.$compileProvider} Self for chaining.
    */
@@ -564,9 +564,8 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 
 
   /**
-   * @ngdoc function
-   * @name ng.$compileProvider#aHrefSanitizationWhitelist
-   * @methodOf ng.$compileProvider
+   * @ngdoc method
+   * @name $compileProvider#aHrefSanitizationWhitelist
    * @function
    *
    * @description
@@ -595,9 +594,8 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 
 
   /**
-   * @ngdoc function
-   * @name ng.$compileProvider#imgSrcSanitizationWhitelist
-   * @methodOf ng.$compileProvider
+   * @ngdoc method
+   * @name $compileProvider#imgSrcSanitizationWhitelist
    * @function
    *
    * @description
@@ -640,9 +638,8 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 
 
       /**
-       * @ngdoc function
-       * @name ng.$compile.directive.Attributes#$addClass
-       * @methodOf ng.$compile.directive.Attributes
+       * @ngdoc method
+       * @name $compile.directive.Attributes#$addClass
        * @function
        *
        * @description
@@ -658,9 +655,8 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
       },
 
       /**
-       * @ngdoc function
-       * @name ng.$compile.directive.Attributes#$removeClass
-       * @methodOf ng.$compile.directive.Attributes
+       * @ngdoc method
+       * @name $compile.directive.Attributes#$removeClass
        * @function
        *
        * @description
@@ -676,9 +672,8 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
       },
 
       /**
-       * @ngdoc function
-       * @name ng.$compile.directive.Attributes#$updateClass
-       * @methodOf ng.$compile.directive.Attributes
+       * @ngdoc method
+       * @name $compile.directive.Attributes#$updateClass
        * @function
        *
        * @description
@@ -689,8 +684,16 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
        * @param {string} oldClasses The former CSS className value
        */
       $updateClass : function(newClasses, oldClasses) {
-        this.$removeClass(tokenDifference(oldClasses, newClasses));
-        this.$addClass(tokenDifference(newClasses, oldClasses));
+        var toAdd = tokenDifference(newClasses, oldClasses);
+        var toRemove = tokenDifference(oldClasses, newClasses);
+
+        if(toAdd.length === 0) {
+          $animate.removeClass(this.$$element, toRemove);
+        } else if(toRemove.length === 0) {
+          $animate.addClass(this.$$element, toAdd);
+        } else {
+          $animate.setClass(this.$$element, toAdd, toRemove);
+        }
       },
 
       /**
@@ -757,9 +760,8 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 
 
       /**
-       * @ngdoc function
-       * @name ng.$compile.directive.Attributes#$observe
-       * @methodOf ng.$compile.directive.Attributes
+       * @ngdoc method
+       * @name $compile.directive.Attributes#$observe
        * @function
        *
        * @description
@@ -866,13 +868,13 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
      * function, which is the a linking function for the node.
      *
      * @param {NodeList} nodeList an array of nodes or NodeList to compile
-     * @param {function(angular.Scope[, cloneAttachFn]} transcludeFn A linking function, where the
+     * @param {function(angular.Scope, cloneAttachFn=)} transcludeFn A linking function, where the
      *        scope argument is auto-generated to the new child of the transcluded parent scope.
      * @param {DOMElement=} $rootElement If the nodeList is the root of the compilation tree then
      *        the rootElement must be set the jqLite collection of the compile root. This is
      *        needed so that the jqLite collection items can be replaced with widgets.
      * @param {number=} maxPriority Max directive priority.
-     * @returns {?function} A composite linking function of all of the matched directives or null.
+     * @returns {Function} A composite linking function of all of the matched directives or null.
      */
     function compileNodes(nodeList, transcludeFn, $rootElement, maxPriority, ignoreDirective,
                             previousCompileContext) {
@@ -1116,7 +1118,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
      *        this needs to be pre-sorted by priority order.
      * @param {Node} compileNode The raw DOM node to apply the compile functions to
      * @param {Object} templateAttrs The shared attribute function
-     * @param {function(angular.Scope[, cloneAttachFn]} transcludeFn A linking function, where the
+     * @param {function(angular.Scope, cloneAttachFn=)} transcludeFn A linking function, where the
      *                                                  scope argument is auto-generated to the new
      *                                                  child of the transcluded parent scope.
      * @param {JQLite} jqCollection If we are working on the root of the compile tree then this
@@ -1128,7 +1130,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
      * @param {Array.<Function>} postLinkFns
      * @param {Object} previousCompileContext Context used for previous compilation of the current
      *                                        node
-     * @returns linkFn
+     * @returns {Function} linkFn
      */
     function applyDirectivesToNode(directives, compileNode, templateAttrs, transcludeFn,
                                    jqCollection, originalReplaceDirective, preLinkFns, postLinkFns,
@@ -1243,9 +1245,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
 
           if (directive.replace) {
             replaceDirective = directive;
-            $template = jqLite('<div>' +
-                                 trim(directiveValue) +
-                               '</div>').contents();
+            $template = directiveTemplateContents(directiveValue);
             compileNode = $template[0];
 
             if ($template.length != 1 || compileNode.nodeType !== 1) {
@@ -1576,7 +1576,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
      *   * `A': attribute
      *   * `C`: class
      *   * `M`: comment
-     * @returns true if directive was added.
+     * @returns {boolean} true if directive was added.
      */
     function addDirective(tDirectives, name, location, maxPriority, ignoreDirective, startAttrName,
                           endAttrName) {
@@ -1644,6 +1644,28 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
     }
 
 
+    function directiveTemplateContents(template) {
+      var type;
+      template = trim(template);
+      if ((type = TABLE_CONTENT_REGEXP.exec(template))) {
+        type = type[1].toLowerCase();
+        var table = jqLite('<table>' + template + '</table>'),
+            tbody = table.children('tbody'),
+            leaf = /(td|th)/.test(type) && table.find('tr');
+        if (tbody.length && type !== 'tbody') {
+          table = tbody;
+        }
+        if (leaf && leaf.length) {
+          table = leaf;
+        }
+        return table.contents();
+      }
+      return jqLite('<div>' +
+                      template +
+                    '</div>').contents();
+    }
+
+
     function compileTemplateUrl(directives, $compileNode, tAttrs,
         $rootElement, childTranscludeFn, preLinkFns, postLinkFns, previousCompileContext) {
       var linkQueue = [],
@@ -1668,7 +1690,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
           content = denormalizeTemplate(content);
 
           if (origAsyncDirective.replace) {
-            $template = jqLite('<div>' + trim(content) + '</div>').contents();
+            $template = directiveTemplateContents(content);
             compileNode = $template[0];
 
             if ($template.length != 1 || compileNode.nodeType !== 1) {
@@ -1940,8 +1962,8 @@ function directiveNormalize(name) {
 }
 
 /**
- * @ngdoc object
- * @name ng.$compile.directive.Attributes
+ * @ngdoc type
+ * @name $compile.directive.Attributes
  *
  * @description
  * A shared object between directive compile / linking functions which contains normalized DOM
@@ -1953,17 +1975,15 @@ function directiveNormalize(name) {
 
 /**
  * @ngdoc property
- * @name ng.$compile.directive.Attributes#$attr
- * @propertyOf ng.$compile.directive.Attributes
+ * @name $compile.directive.Attributes#$attr
  * @returns {object} A map of DOM element attribute names to the normalized name. This is
  *                   needed to do reverse lookup from normalized name back to actual name.
  */
 
 
 /**
- * @ngdoc function
- * @name ng.$compile.directive.Attributes#$set
- * @methodOf ng.$compile.directive.Attributes
+ * @ngdoc method
+ * @name $compile.directive.Attributes#$set
  * @function
  *
  * @description

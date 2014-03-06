@@ -97,6 +97,23 @@ describe('jqLite', function() {
     });
   });
 
+  describe('_data', function() {
+    it('should provide access to the data present on the element', function() {
+      var element = jqLite('<i>foo</i>');
+      var data = ['value'];
+      element.data('val', data);
+      expect(angular.element._data(element[0]).data.val).toBe(data);
+      dealoc(element);
+    });
+
+    it('should provide access to the events present on the element', function() {
+      var element = jqLite('<i>foo</i>');
+      expect(angular.element._data(element[0]).events).toBeUndefined();
+
+      element.on('click', function() { });
+      expect(angular.element._data(element[0]).events.click).toBeDefined();
+    });
+  });
 
   describe('inheritedData', function() {
 
@@ -648,6 +665,57 @@ describe('jqLite', function() {
         expect(jqLite(a).hasClass('abc')).toEqual(false);
         expect(jqLite(b).hasClass('abc')).toEqual(false);
 
+      });
+
+      it('should allow toggling multiple classes without a condition', function () {
+        var selector = jqLite([a, b]);
+        expect(selector.toggleClass('abc cde')).toBe(selector);
+        expect(jqLite(a).hasClass('abc')).toBe(true);
+        expect(jqLite(a).hasClass('cde')).toBe(true);
+        expect(jqLite(b).hasClass('abc')).toBe(true);
+        expect(jqLite(b).hasClass('cde')).toBe(true);
+
+        expect(selector.toggleClass('abc cde')).toBe(selector);
+        expect(jqLite(a).hasClass('abc')).toBe(false);
+        expect(jqLite(a).hasClass('cde')).toBe(false);
+        expect(jqLite(b).hasClass('abc')).toBe(false);
+        expect(jqLite(b).hasClass('cde')).toBe(false);
+
+        expect(selector.toggleClass('abc')).toBe(selector);
+        expect(selector.toggleClass('abc cde')).toBe(selector);
+        expect(jqLite(a).hasClass('abc')).toBe(false);
+        expect(jqLite(a).hasClass('cde')).toBe(true);
+        expect(jqLite(b).hasClass('abc')).toBe(false);
+        expect(jqLite(b).hasClass('cde')).toBe(true);
+
+        expect(selector.toggleClass('abc cde')).toBe(selector);
+        expect(jqLite(a).hasClass('abc')).toBe(true);
+        expect(jqLite(a).hasClass('cde')).toBe(false);
+        expect(jqLite(b).hasClass('abc')).toBe(true);
+        expect(jqLite(b).hasClass('cde')).toBe(false);
+      });
+
+      it('should allow toggling multiple classes with a condition', function () {
+        var selector = jqLite([a, b]);
+        selector.addClass('abc');
+        expect(selector.toggleClass('abc cde', true)).toBe(selector);
+        expect(jqLite(a).hasClass('abc')).toBe(true);
+        expect(jqLite(a).hasClass('cde')).toBe(true);
+        expect(jqLite(b).hasClass('abc')).toBe(true);
+        expect(jqLite(b).hasClass('cde')).toBe(true);
+
+        selector.removeClass('abc');
+        expect(selector.toggleClass('abc cde', false)).toBe(selector);
+        expect(jqLite(a).hasClass('abc')).toBe(false);
+        expect(jqLite(a).hasClass('cde')).toBe(false);
+        expect(jqLite(b).hasClass('abc')).toBe(false);
+        expect(jqLite(b).hasClass('cde')).toBe(false);
+      });
+
+      it('should not break for null / undefined selectors', function () {
+        var selector = jqLite([a, b]);
+        expect(selector.toggleClass(null)).toBe(selector);
+        expect(selector.toggleClass(undefined)).toBe(selector);
       });
     });
 
@@ -1282,6 +1350,33 @@ describe('jqLite', function() {
       expect(contents[0].data).toEqual(' some comment ');
       expect(contents[1].data).toEqual('before-');
     });
+
+    // IE8 does not like this test, although the functionality may still work there.
+    if (!msie || msie > 8) {
+      it('should select all types iframe contents', function() {
+        var iframe_ = document.createElement('iframe'), tested,
+            iframe = jqLite(iframe_);
+        function test() {
+          var contents = iframe.contents();
+          expect(contents[0]).toBeTruthy();
+          expect(contents.length).toBe(1);
+          expect(contents.prop('nodeType')).toBe(9);
+          expect(contents[0].body).toBeTruthy();
+          expect(jqLite(contents[0].body).contents().length).toBe(3);
+          iframe.remove();
+          tested = true;
+        }
+        iframe_.onload = iframe_.onreadystatechange = function() {
+          if (iframe_.contentDocument) test();
+        };
+        iframe_.src = "/base/test/fixtures/iframe.html";
+        jqLite(document).find('body').append(iframe);
+
+        // This test is potentially flaky on CI cloud instances, so there is a generous
+        // wait period...
+        waitsFor(function() { return tested; }, 2000);
+      });
+    }
   });
 
 

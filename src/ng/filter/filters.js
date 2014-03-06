@@ -2,7 +2,7 @@
 
 /**
  * @ngdoc filter
- * @name ng.filter:currency
+ * @name currency
  * @function
  *
  * @description
@@ -15,8 +15,8 @@
  *
  *
  * @example
-   <doc:example>
-     <doc:source>
+   <example>
+     <file name="index.html">
        <script>
          function Ctrl($scope) {
            $scope.amount = 1234.56;
@@ -27,8 +27,8 @@
          default currency symbol ($): <span id="currency-default">{{amount | currency}}</span><br>
          custom currency identifier (USD$): <span>{{amount | currency:"USD$"}}</span>
        </div>
-     </doc:source>
-     <doc:protractor>
+     </file>
+     <file name="protractor.js" type="protractor">
        it('should init with 1234.56', function() {
          expect(element(by.id('currency-default')).getText()).toBe('$1,234.56');
          expect(element(by.binding('amount | currency:"USD$"')).getText()).toBe('USD$1,234.56');
@@ -40,11 +40,12 @@
            return;
          }
          element(by.model('amount')).clear();
-         element(by.model('amount')).sendKeys('-1234');         expect(element(by.id('currency-default')).getText()).toBe('($1,234.00)');
+         element(by.model('amount')).sendKeys('-1234');
+         expect(element(by.id('currency-default')).getText()).toBe('($1,234.00)');
          expect(element(by.binding('amount | currency:"USD$"')).getText()).toBe('(USD$1,234.00)');
        });
-     </doc:protractor>
-   </doc:example>
+     </file>
+   </example>
  */
 currencyFilter.$inject = ['$locale'];
 function currencyFilter($locale) {
@@ -58,7 +59,7 @@ function currencyFilter($locale) {
 
 /**
  * @ngdoc filter
- * @name ng.filter:number
+ * @name number
  * @function
  *
  * @description
@@ -73,8 +74,8 @@ function currencyFilter($locale) {
  * @returns {string} Number rounded to decimalPlaces and places a “,” after each third digit.
  *
  * @example
-   <doc:example>
-     <doc:source>
+   <example>
+     <file name="index.html">
        <script>
          function Ctrl($scope) {
            $scope.val = 1234.56789;
@@ -86,8 +87,8 @@ function currencyFilter($locale) {
          No fractions: <span>{{val | number:0}}</span><br>
          Negative number: <span>{{-val | number:4}}</span>
        </div>
-     </doc:source>
-     <doc:protractor>
+     </file>
+     <file name="protractor.js" type="protractor">
        it('should format numbers', function() {
          expect(element(by.id('number-default')).getText()).toBe('1,234.568');
          expect(element(by.binding('val | number:0')).getText()).toBe('1,235');
@@ -101,8 +102,8 @@ function currencyFilter($locale) {
          expect(element(by.binding('val | number:0')).getText()).toBe('3,374');
          expect(element(by.binding('-val | number:4')).getText()).toBe('-3,374.3330');
       });
-     </doc:protractor>
-   </doc:example>
+     </file>
+   </example>
  */
 
 
@@ -117,7 +118,7 @@ function numberFilter($locale) {
 
 var DECIMAL_SEP = '.';
 function formatNumber(number, pattern, groupSep, decimalSep, fractionSize) {
-  if (isNaN(number) || !isFinite(number)) return '';
+  if (number == null || !isFinite(number) || isObject(number)) return '';
 
   var isNegative = number < 0;
   number = Math.abs(number);
@@ -234,6 +235,32 @@ function timeZoneGetter(date) {
   return paddedZone;
 }
 
+function getFirstThursdayOfYear(year) {
+    // 0 = index of January
+    var dayOfWeekOnFirst = (new Date(year, 0, 1)).getDay();
+    // 4 = index of Thursday (+1 to account for 1st = 5)
+    // 11 = index of *next* Thursday (+1 account for 1st = 12)
+    return new Date(year, 0, ((dayOfWeekOnFirst <= 4) ? 5 : 12) - dayOfWeekOnFirst);
+}
+
+function getThursdayThisWeek(datetime) {
+    return new Date(datetime.getFullYear(), datetime.getMonth(),
+      // 4 = index of Thursday
+      datetime.getDate() + (4 - datetime.getDay()));
+}
+
+function weekGetter(size) {
+   return function(date) {
+      var firstThurs = getFirstThursdayOfYear(date.getFullYear()),
+         thisThurs = getThursdayThisWeek(date);
+
+      var diff = +thisThurs - +firstThurs,
+         result = 1 + Math.round(diff / 6.048e8); // 6.048e8 ms per week
+
+      return padNumber(result, size);
+   };
+}
+
 function ampmGetter(date, formats) {
   return date.getHours() < 12 ? formats.AMPMS[0] : formats.AMPMS[1];
 }
@@ -262,15 +289,17 @@ var DATE_FORMATS = {
   EEEE: dateStrGetter('Day'),
    EEE: dateStrGetter('Day', true),
      a: ampmGetter,
-     Z: timeZoneGetter
+     Z: timeZoneGetter,
+    ww: weekGetter(2),
+     w: weekGetter(1)
 };
 
-var DATE_FORMATS_SPLIT = /((?:[^yMdHhmsaZE']+)|(?:'(?:[^']|'')*')|(?:E+|y+|M+|d+|H+|h+|m+|s+|a|Z))(.*)/,
+var DATE_FORMATS_SPLIT = /((?:[^yMdHhmsaZEw']+)|(?:'(?:[^']|'')*')|(?:E+|y+|M+|d+|H+|h+|m+|s+|a|Z|w+))(.*)/,
     NUMBER_STRING = /^\-?\d+$/;
 
 /**
  * @ngdoc filter
- * @name ng.filter:date
+ * @name date
  * @function
  *
  * @description
@@ -300,6 +329,8 @@ var DATE_FORMATS_SPLIT = /((?:[^yMdHhmsaZE']+)|(?:'(?:[^']|'')*')|(?:E+|y+|M+|d+
  *   * `'.sss' or ',sss'`: Millisecond in second, padded (000-999)
  *   * `'a'`: am/pm marker
  *   * `'Z'`: 4 digit (+sign) representation of the timezone offset (-1200-+1200)
+ *   * `'ww'`: ISO-8601 week of year (00-53)
+ *   * `'w'`: ISO-8601 week of year (0-53)
  *
  *   `format` string can also be one of the following predefined
  *   {@link guide/i18n localizable formats}:
@@ -328,16 +359,16 @@ var DATE_FORMATS_SPLIT = /((?:[^yMdHhmsaZE']+)|(?:'(?:[^']|'')*')|(?:E+|y+|M+|d+
  * @returns {string} Formatted string or the input if input is not recognized as date/millis.
  *
  * @example
-   <doc:example>
-     <doc:source>
+   <example>
+     <file name="index.html">
        <span ng-non-bindable>{{1288323623006 | date:'medium'}}</span>:
            <span>{{1288323623006 | date:'medium'}}</span><br>
        <span ng-non-bindable>{{1288323623006 | date:'yyyy-MM-dd HH:mm:ss Z'}}</span>:
           <span>{{1288323623006 | date:'yyyy-MM-dd HH:mm:ss Z'}}</span><br>
        <span ng-non-bindable>{{1288323623006 | date:'MM/dd/yyyy @ h:mma'}}</span>:
           <span>{{'1288323623006' | date:'MM/dd/yyyy @ h:mma'}}</span><br>
-     </doc:source>
-     <doc:protractor>
+     </file>
+     <file name="protractor.js" type="protractor">
        it('should format date', function() {
          expect(element(by.binding("1288323623006 | date:'medium'")).getText()).
             toMatch(/Oct 2\d, 2010 \d{1,2}:\d{2}:\d{2} (AM|PM)/);
@@ -346,8 +377,8 @@ var DATE_FORMATS_SPLIT = /((?:[^yMdHhmsaZE']+)|(?:'(?:[^']|'')*')|(?:E+|y+|M+|d+
          expect(element(by.binding("'1288323623006' | date:'MM/dd/yyyy @ h:mma'")).getText()).
             toMatch(/10\/2\d\/2010 @ \d{1,2}:\d{2}(AM|PM)/);
        });
-     </doc:protractor>
-   </doc:example>
+     </file>
+   </example>
  */
 dateFilter.$inject = ['$locale'];
 function dateFilter($locale) {
@@ -427,7 +458,7 @@ function dateFilter($locale) {
 
 /**
  * @ngdoc filter
- * @name ng.filter:json
+ * @name json
  * @function
  *
  * @description
@@ -441,16 +472,16 @@ function dateFilter($locale) {
  *
  *
  * @example:
-   <doc:example>
-     <doc:source>
+   <example>
+     <file name="index.html">
        <pre>{{ {'name':'value'} | json }}</pre>
-     </doc:source>
-     <doc:protractor>
+     </file>
+     <file name="protractor.js" type="protractor">
        it('should jsonify filtered objects', function() {
          expect(element(by.binding("{'name':'value'}")).getText()).toMatch(/\{\n  "name": ?"value"\n}/);
        });
-     </doc:protractor>
-   </doc:example>
+     </file>
+   </example>
  *
  */
 function jsonFilter() {
@@ -462,7 +493,7 @@ function jsonFilter() {
 
 /**
  * @ngdoc filter
- * @name ng.filter:lowercase
+ * @name lowercase
  * @function
  * @description
  * Converts string to lowercase.
@@ -473,7 +504,7 @@ var lowercaseFilter = valueFn(lowercase);
 
 /**
  * @ngdoc filter
- * @name ng.filter:uppercase
+ * @name uppercase
  * @function
  * @description
  * Converts string to uppercase.

@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * @ngdoc overview
+ * @ngdoc module
  * @name ngRoute
  * @description
  *
@@ -11,8 +11,7 @@
  *
  * ## Example
  * See {@link ngRoute.$route#example $route} for an example of configuring and using `ngRoute`.
- * 
- * {@installModule route}
+ *
  *
  * <div doc-module-components="ngRoute"></div>
  */
@@ -21,14 +20,14 @@ var ngRouteModule = angular.module('ngRoute', ['ng']).
                         provider('$route', $RouteProvider);
 
 /**
- * @ngdoc object
- * @name ngRoute.$routeProvider
+ * @ngdoc provider
+ * @name $routeProvider
  * @function
  *
  * @description
  *
  * Used for configuring routes.
- * 
+ *
  * ## Example
  * See {@link ngRoute.$route#example $route} for an example of configuring and using `ngRoute`.
  *
@@ -44,27 +43,26 @@ function $RouteProvider(){
 
   /**
    * @ngdoc method
-   * @name ngRoute.$routeProvider#when
-   * @methodOf ngRoute.$routeProvider
+   * @name $routeProvider#when
    *
    * @param {string} path Route path (matched against `$location.path`). If `$location.path`
    *    contains redundant trailing slash or is missing one, the route will still match and the
    *    `$location.path` will be updated to add or drop the trailing slash to exactly match the
    *    route definition.
    *
-   *      * `path` can contain named groups starting with a colon: e.g. `:name`. All characters up
+   *    * `path` can contain named groups starting with a colon: e.g. `:name`. All characters up
    *        to the next slash are matched and stored in `$routeParams` under the given `name`
    *        when the route matches.
-   *      * `path` can contain named groups starting with a colon and ending with a star:
+   *    * `path` can contain named groups starting with a colon and ending with a star:
    *        e.g.`:name*`. All characters are eagerly stored in `$routeParams` under the given `name`
    *        when the route matches.
-   *      * `path` can contain optional named groups with a question mark: e.g.`:name?`.
+   *    * `path` can contain optional named groups with a question mark: e.g.`:name?`.
    *
    *    For example, routes like `/color/:color/largecode/:largecode*\/edit` will match
-   *    `/color/brown/largecode/code/with/slashs/edit` and extract:
+   *    `/color/brown/largecode/code/with/slashes/edit` and extract:
    *
-   *      * `color: brown`
-   *      * `largecode: code/with/slashs`.
+   *    * `color: brown`
+   *    * `largecode: code/with/slashes`.
    *
    *
    * @param {Object} route Mapping information to be assigned to `$route.current` on route
@@ -84,7 +82,7 @@ function $RouteProvider(){
    *
    *      If `template` is a function, it will be called with the following parameters:
    *
-   *      - `{Array.<Object>}` - route parameters extracted from the current
+   *      - `{Array.&lt;Object&gt;}` - route parameters extracted from the current
    *        `$location.path()` by applying the current route
    *
    *    - `templateUrl` – `{string=|function()=}` – path or function that returns a path to an html
@@ -92,7 +90,7 @@ function $RouteProvider(){
    *
    *      If `templateUrl` is a function, it will be called with the following parameters:
    *
-   *      - `{Array.<Object>}` - route parameters extracted from the current
+   *      - `{Array.&lt;Object&gt;}` - route parameters extracted from the current
    *        `$location.path()` by applying the current route
    *
    *    - `resolve` - `{Object.<string, function>=}` - An optional map of dependencies which should
@@ -107,7 +105,7 @@ function $RouteProvider(){
    *
    *      - `key` – `{string}`: a name of a dependency to be injected into the controller.
    *      - `factory` - `{string|function}`: If `string` then it is an alias for a service.
-   *        Otherwise if function, then it is {@link api/AUTO.$injector#invoke injected}
+   *        Otherwise if function, then it is {@link auto.$injector#invoke injected}
    *        and the return value is treated as the dependency. If the result is a promise, it is
    *        resolved before its value is injected into the controller. Be aware that
    *        `ngRoute.$routeParams` will still refer to the previous route within these resolve
@@ -207,8 +205,7 @@ function $RouteProvider(){
 
   /**
    * @ngdoc method
-   * @name ngRoute.$routeProvider#otherwise
-   * @methodOf ngRoute.$routeProvider
+   * @name $routeProvider#otherwise
    *
    * @description
    * Sets route definition that will be used on route change when no other route definition
@@ -234,8 +231,8 @@ function $RouteProvider(){
       function($rootScope, $location, $routeParams, $q, $injector, $http, $templateCache, $sce) {
 
     /**
-     * @ngdoc object
-     * @name ngRoute.$route
+     * @ngdoc service
+     * @name $route
      * @requires $location
      * @requires $routeParams
      *
@@ -271,7 +268,7 @@ function $RouteProvider(){
        Note that this example is using {@link ng.directive:script inlined templates}
        to get it working on jsfiddle as well.
 
-     <example module="ngViewExample" deps="angular-route.js">
+     <example name="$route-service" module="ngRouteExample" deps="angular-route.js" fixBase="true">
        <file name="index.html">
          <div ng-controller="MainCntl">
            Choose:
@@ -304,7 +301,7 @@ function $RouteProvider(){
        </file>
 
        <file name="script.js">
-         angular.module('ngViewExample', ['ngRoute'])
+         angular.module('ngRouteExample', ['ngRoute'])
 
          .config(function($routeProvider, $locationProvider) {
            $routeProvider.when('/Book/:bookId', {
@@ -345,17 +342,17 @@ function $RouteProvider(){
          }
        </file>
 
-       <file name="protractorTest.js">
+       <file name="protractor.js" type="protractor">
          it('should load and compile correct template', function() {
            element(by.linkText('Moby: Ch1')).click();
-           var content = element(by.css('.doc-example-live [ng-view]')).getText();
+           var content = element(by.css('[ng-view]')).getText();
            expect(content).toMatch(/controller\: ChapterCntl/);
            expect(content).toMatch(/Book Id\: Moby/);
            expect(content).toMatch(/Chapter Id\: 1/);
 
            element(by.partialLinkText('Scarlet')).click();
 
-           content = element(by.css('.doc-example-live [ng-view]')).getText();
+           content = element(by.css('[ng-view]')).getText();
            expect(content).toMatch(/controller\: BookCntl/);
            expect(content).toMatch(/Book Id\: Scarlet/);
          });
@@ -365,8 +362,7 @@ function $RouteProvider(){
 
     /**
      * @ngdoc event
-     * @name ngRoute.$route#$routeChangeStart
-     * @eventOf ngRoute.$route
+     * @name $route#$routeChangeStart
      * @eventType broadcast on root scope
      * @description
      * Broadcasted before a route change. At this  point the route services starts
@@ -382,8 +378,7 @@ function $RouteProvider(){
 
     /**
      * @ngdoc event
-     * @name ngRoute.$route#$routeChangeSuccess
-     * @eventOf ngRoute.$route
+     * @name $route#$routeChangeSuccess
      * @eventType broadcast on root scope
      * @description
      * Broadcasted after a route dependencies are resolved.
@@ -398,8 +393,7 @@ function $RouteProvider(){
 
     /**
      * @ngdoc event
-     * @name ngRoute.$route#$routeChangeError
-     * @eventOf ngRoute.$route
+     * @name $route#$routeChangeError
      * @eventType broadcast on root scope
      * @description
      * Broadcasted if any of the resolve promises are rejected.
@@ -412,8 +406,7 @@ function $RouteProvider(){
 
     /**
      * @ngdoc event
-     * @name ngRoute.$route#$routeUpdate
-     * @eventOf ngRoute.$route
+     * @name $route#$routeUpdate
      * @eventType broadcast on root scope
      * @description
      *
@@ -427,8 +420,7 @@ function $RouteProvider(){
 
           /**
            * @ngdoc method
-           * @name ngRoute.$route#reload
-           * @methodOf ngRoute.$route
+           * @name $route#reload
            *
            * @description
            * Causes `$route` service to reload the current route even if
@@ -560,7 +552,7 @@ function $RouteProvider(){
 
 
     /**
-     * @returns the current active route, by matching it against the URL
+     * @returns {Object} the current active route, by matching it against the URL
      */
     function parseRoute() {
       // Match a route
@@ -578,7 +570,7 @@ function $RouteProvider(){
     }
 
     /**
-     * @returns interpolation of the redirect path with the parameters
+     * @returns {string} interpolation of the redirect path with the parameters
      */
     function interpolate(string, params) {
       var result = [];

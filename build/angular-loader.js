@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.2.15-ts.0-build.local+sha.7afc98c
+ * @license AngularJS v1.2.15-ts.0-build.local+sha.a3128bb
  * (c) 2010-2014 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -69,7 +69,7 @@ function minErr(module) {
       return match;
     });
 
-    message = message + '\nhttp://errors.angularjs.org/1.2.15-ts.0-build.local+sha.7afc98c/' +
+    message = message + '\nhttp://errors.angularjs.org/1.2.15-ts.0-build.local+sha.a3128bb/' +
       (module ? module + '/' : '') + code;
     for (i = 2; i < arguments.length; i++) {
       message = message + (i == 2 ? '?' : '&') + 'p' + (i-2) + '=' +

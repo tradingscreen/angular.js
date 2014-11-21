@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.2.15-ts.0-build.local+sha.7afc98c
+ * @license AngularJS v1.2.15-ts.0-build.local+sha.a3128bb
  * (c) 2010-2014 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -68,7 +68,7 @@ function minErr(module) {
       return match;
     });
 
-    message = message + '\nhttp://errors.angularjs.org/1.2.15-ts.0-build.local+sha.7afc98c/' +
+    message = message + '\nhttp://errors.angularjs.org/1.2.15-ts.0-build.local+sha.a3128bb/' +
       (module ? module + '/' : '') + code;
     for (i = 2; i < arguments.length; i++) {
       message = message + (i == 2 ? '?' : '&') + 'p' + (i-2) + '=' +
@@ -1880,7 +1880,7 @@ function setupModuleLoader(window) {
  * - `codeName` – `{string}` – Code name of the release, such as "jiggling-armfat".
  */
 var version = {
-  full: '1.2.15-ts.0-build.local+sha.7afc98c',    // all of these placeholder strings will be replaced by grunt's
+  full: '1.2.15-ts.0-build.local+sha.a3128bb',    // all of these placeholder strings will be replaced by grunt's
   major: 1,    // package task
   minor: 2,
   dot: 15,
@@ -7689,6 +7689,13 @@ function $HttpProvider() {
         return promise;
       };
 
+      promise.notify = function(fn) {
+        promise.then(null, null, function(event) {
+          fn(event, config);
+        });
+        return promise;
+      };
+
       return promise;
 
       function transformResponse(response) {
@@ -7911,7 +7918,7 @@ function $HttpProvider() {
 
       // if we won't have the response in cache, send the request to the backend
       if (isUndefined(cachedResp)) {
-        $httpBackend(config.method, url, reqData, done, reqHeaders, config.timeout,
+        $httpBackend(config.method, url, reqData, progress, done, reqHeaders, config.timeout,
             config.withCredentials, config.responseType, isDefined(config.async) ? config.async : true);
       }
 
@@ -7936,6 +7943,13 @@ function $HttpProvider() {
 
         resolvePromise(response, status, headersString);
         if (!$rootScope.$$phase) $rootScope.$apply();
+      }
+
+      /**
+       * Progress callback for $httpBackend
+       */
+      function progress(event) {
+        deferred.notify(event);
       }
 
 
@@ -8027,7 +8041,7 @@ function createHttpBackend($browser, createXhr, $browserDefer, callbacks, rawDoc
   var ABORTED = -1;
 
   // TODO(vojta): fix the signature
-  return function(method, url, post, callback, headers, timeout, withCredentials, responseType, async) {
+  return function(method, url, post, progressback, callback, headers, timeout, withCredentials, responseType, async) {
     var status;
     $browser.$$incOutstandingRequestCount();
     url = url || $browser.url();
@@ -8087,6 +8101,14 @@ function createHttpBackend($browser, createXhr, $browserDefer, callbacks, rawDoc
               responseHeaders);
         }
       };
+
+      if (xhr.onprogress !== undefined) {
+        xhr.onprogress = progressback;
+
+        if (xhr.upload !== undefined) {
+          xhr.upload.onprogress = progressback;
+        }
+      }
 
       if (withCredentials) {
         xhr.withCredentials = true;
